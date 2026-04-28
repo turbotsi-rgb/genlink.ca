@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Genlink Consulting — Identity & Messaging Architecture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #080a0f;
+    --surface: #0d1117;
+    --surface-2: #161b22;
+    --surface-3: #1c2333;
+    --border: #21262d;
+    --border-bright: #30363d;
+    --accent: #00c8ff;
+    --accent-dim: rgba(0,200,255,0.12);
+    --accent-glow: rgba(0,200,255,0.25);
+    --green: #39d353;
+    --text: #e6edf3;
+    --text-muted: #7d8590;
+    --text-dim: #3d444d;
+    --font-display: 'Syne', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--text);
+    font-family: var(--font-display);
+    overflow-x: hidden;
+    cursor: default;
+  }
+
+  /* GRID BACKGROUND */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,200,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,200,255,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 3rem;
+    height: 64px;
+    background: rgba(8,10,15,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--text);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .nav-logo-mark {
+    width: 28px; height: 28px;
+    border: 1.5px solid var(--accent);
+    display: grid;
+    place-items: center;
+    position: relative;
+  }
+
+  .nav-logo-mark::before {
+    content: '';
+    width: 10px; height: 10px;
+    background: var(--accent);
+    clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--accent); }
+
+  .nav-cta {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    text-decoration: none;
+    border: 1px solid var(--accent);
+    padding: 8px 20px;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .nav-cta:hover {
+    background: var(--accent);
+    color: var(--black);
+  }
+
+  /* HERO */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 120px 3rem 80px;
+    overflow: hidden;
+  }
+
+  .hero-glow {
+    position: absolute;
+    top: -200px; left: -200px;
+    width: 700px; height: 700px;
+    background: radial-gradient(circle, rgba(0,200,255,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-tag {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    opacity: 0;
+    animation: fadeUp 0.6s 0.2s forwards;
+  }
+
+  .hero-tag::before {
+    content: '';
+    width: 32px; height: 1px;
+    background: var(--accent);
+  }
+
+  .hero-headline {
+    font-size: clamp(3rem, 7vw, 6.5rem);
+    font-weight: 800;
+    line-height: 1.0;
+    letter-spacing: -0.03em;
+    max-width: 900px;
+    margin-bottom: 2rem;
+    opacity: 0;
+    animation: fadeUp 0.6s 0.35s forwards;
+  }
+
+  .hero-headline em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  .hero-sub {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 300;
+    color: var(--text-muted);
+    line-height: 1.8;
+    max-width: 560px;
+    margin-bottom: 3rem;
+    opacity: 0;
+    animation: fadeUp 0.6s 0.5s forwards;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    opacity: 0;
+    animation: fadeUp 0.6s 0.65s forwards;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--accent);
+    color: var(--black);
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 14px 28px;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+
+  .btn-primary:hover { opacity: 0.85; transform: translateY(-1px); }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-muted);
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 14px 28px;
+    border: 1px solid var(--border-bright);
+    transition: border-color 0.2s, color 0.2s;
+  }
+
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  .hero-stats {
+    position: absolute;
+    bottom: 60px; right: 3rem;
+    display: flex;
+    gap: 3rem;
+    opacity: 0;
+    animation: fadeUp 0.6s 0.8s forwards;
+  }
+
+  .stat {
+    text-align: right;
+  }
+
+  .stat-num {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .stat-num span { color: var(--accent); }
+
+  .stat-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  /* SECTION BASE */
+  section {
+    position: relative;
+    z-index: 1;
+  }
+
+  .section-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 100px 3rem;
+  }
+
+  .section-tag {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-tag::before {
+    content: '';
+    width: 24px; height: 1px;
+    background: var(--accent);
+  }
+
+  .section-title {
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+  }
+
+  .section-body {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 300;
+    line-height: 1.9;
+    color: var(--text-muted);
+    max-width: 620px;
+  }
+
+  /* ABOUT */
+  #about { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5rem;
+    align-items: center;
+  }
+
+  .about-badges {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .badge {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    background: var(--surface-2);
+    border-left: 2px solid transparent;
+    transition: border-color 0.2s, background 0.2s;
+    cursor: default;
+  }
+
+  .badge:hover {
+    border-left-color: var(--accent);
+    background: var(--surface-3);
+  }
+
+  .badge-icon {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    color: var(--accent);
+    width: 32px;
+    flex-shrink: 0;
+  }
+
+  .badge-text strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  .badge-text span {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  /* SERVICES */
+  #services { background: var(--black); }
+
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    margin-top: 4rem;
+    border: 1px solid var(--border);
+  }
+
+  .service-card {
+    background: var(--surface);
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.2s;
+  }
+
+  .service-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s;
+  }
+
+  .service-card:hover { background: var(--surface-2); }
+  .service-card:hover::before { transform: scaleX(1); }
+
+  .service-num {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    margin-bottom: 1.25rem;
+  }
+
+  .service-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    line-height: 1.3;
+  }
+
+  .service-desc {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 300;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  /* EXPERTISE / TECH */
+  #expertise { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+
+  .expertise-layout {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 5rem;
+    margin-top: 3rem;
+  }
+
+  .tech-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .tech-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--surface-2);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    border-left: 2px solid transparent;
+    transition: border-color 0.2s;
+    cursor: default;
+  }
+
+  .tech-item:hover { border-left-color: var(--accent); }
+
+  .tech-item .dot {
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    box-shadow: 0 0 6px var(--green);
+  }
+
+  .expertise-blocks {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    align-content: start;
+  }
+
+  .expertise-block {
+    background: var(--surface-2);
+    padding: 1.75rem;
+  }
+
+  .expertise-block h4 {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.75rem;
+    color: var(--accent);
+  }
+
+  .expertise-block p {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 300;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  /* INDUSTRIES */
+  #industries { background: var(--black); }
+
+  .industries-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-top: 3rem;
+  }
+
+  .industry-item {
+    background: var(--surface);
+    padding: 2rem 1.5rem;
+    text-align: center;
+    transition: background 0.2s;
+    cursor: default;
+  }
+
+  .industry-item:hover { background: var(--surface-2); }
+
+  .industry-icon {
+    font-size: 28px;
+    margin-bottom: 1rem;
+    display: block;
+  }
+
+  .industry-name {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* CONTACT */
+  #contact { background: var(--surface); border-top: 1px solid var(--border); }
+
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5rem;
+    align-items: start;
+  }
+
+  .contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .form-group label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    background: var(--surface-2);
+    border: 1px solid var(--border-bright);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    padding: 12px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    resize: none;
+    appearance: none;
+  }
+
+  .form-group input:focus,
+  .form-group textarea:focus,
+  .form-group select:focus {
+    border-color: var(--accent);
+  }
+
+  .form-group textarea { min-height: 120px; }
+
+  .contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .contact-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .contact-detail:last-child { border-bottom: none; }
+
+  .contact-detail-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .contact-detail-value {
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .contact-detail-sub {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .ms-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: var(--surface-3);
+    border: 1px solid var(--border-bright);
+    margin-top: 1rem;
+  }
+
+  .ms-badge-dot {
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--accent);
+  }
+
+  .ms-badge-text {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .ms-badge-text strong { color: var(--text); }
+
+  /* FOOTER */
+  footer {
+    background: var(--black);
+    border-top: 1px solid var(--border);
+    padding: 2.5rem 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-logo {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+  }
+
+  .footer-copy {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 1.5rem;
+    list-style: none;
+  }
+
+  .footer-links a {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .footer-links a:hover { color: var(--accent); }
+
+  /* DIVIDER */
+  .h-rule {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 3rem 0;
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* SCROLLED-INTO-VIEW */
+  .reveal {
+    opacity: 0;
+    transform: translateY(32px);
+    transition: opacity 0.6s, transform 0.6s;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* MOBILE NAV */
+  .nav-hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+    padding: 4px;
+  }
+
+  .nav-hamburger span {
+    width: 24px; height: 1.5px;
+    background: var(--text);
+    transition: 0.3s;
+  }
+
+  @media (max-width: 900px) {
+    .nav-links { display: none; }
+    .nav-hamburger { display: flex; }
+    .about-grid, .contact-grid, .expertise-layout { grid-template-columns: 1fr; gap: 3rem; }
+    .services-grid { grid-template-columns: 1fr; }
+    .industries-grid { grid-template-columns: repeat(2, 1fr); }
+    .expertise-blocks { grid-template-columns: 1fr; }
+    .hero-stats { position: static; margin-top: 3rem; justify-content: flex-start; }
+    .form-row { grid-template-columns: 1fr; }
+    footer { flex-direction: column; gap: 1rem; text-align: center; }
+    .section-inner { padding: 60px 1.5rem; }
+    nav { padding: 0 1.5rem; }
+    .hero { padding: 100px 1.5rem 60px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">
+    <div class="nav-logo-mark"></div>
+    GENLINK
+  </a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#services">Services</a></li>
+    <li><a href="#expertise">Expertise</a></li>
+    <li><a href="#industries">Industries</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <a href="#contact" class="nav-cta">Get in Touch</a>
+  <div class="nav-hamburger" onclick="this.classList.toggle('open')">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-tag">Microsoft Identity Partner — Canada</div>
+  <h1 class="hero-headline">
+    Identity.<br>
+    Messaging.<br>
+    <em>Architecture.</em>
+  </h1>
+  <p class="hero-sub">
+    Enterprise-grade Microsoft Entra ID, hybrid identity, Active Directory modernization, and Exchange Online migration services. Built for organizations that can't afford to get it wrong.
+  </p>
+  <div class="hero-actions">
+    <a href="#services" class="btn-primary">View Services →</a>
+    <a href="#contact" class="btn-ghost">Start a Conversation</a>
+  </div>
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-num">20<span>+</span></div>
+      <div class="stat-label">Years Experience</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">500<span>K+</span></div>
+      <div class="stat-label">Seats Secured</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">5</div>
+      <div class="stat-label">Sectors Served</div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="section-inner">
+    <div class="about-grid">
+      <div class="reveal">
+        <div class="section-tag">About Genlink</div>
+        <h2 class="section-title">Boutique Practice.<br>Enterprise Depth.</h2>
+        <p class="section-body">
+          Genlink Consulting is a specialized identity and messaging architecture practice with over 20 years of hands-on Microsoft experience. We work across public sector, energy, and mid-market organizations — delivering scenario-driven designs that hold up under real-world operational demands.
+        </p>
+        <br>
+        <p class="section-body">
+          Our engagements range from government-scale identity architecture (500,000+ seats) to mid-market M365 migrations. We bring proven depth in Entra ID, hybrid identity, Exchange Online, and the full stack of enterprise identity challenges that arise from M&A, legacy modernization, and cloud transformation.
+        </p>
+        <br>
+        <div class="ms-badge">
+          <div class="ms-badge-dot"></div>
+          <div class="ms-badge-text"><strong>Microsoft Partner</strong> — Identity & Messaging Architecture</div>
+        </div>
+      </div>
+      <div class="about-badges reveal">
+        <div class="badge">
+          <div class="badge-icon">⬡</div>
+          <div class="badge-text">
+            <strong>Microsoft Entra ID</strong>
+            <span>Hybrid identity, lifecycle automation, governance</span>
+          </div>
+        </div>
+        <div class="badge">
+          <div class="badge-icon">⬡</div>
+          <div class="badge-text">
+            <strong>Active Directory</strong>
+            <span>Forest migrations, multi-forest consolidation, modernization</span>
+          </div>
+        </div>
+        <div class="badge">
+          <div class="badge-icon">⬡</div>
+          <div class="badge-text">
+            <strong>Exchange Online</strong>
+            <span>Cutover, staged, hybrid & cross-tenant migrations</span>
+          </div>
+        </div>
+        <div class="badge">
+          <div class="badge-icon">⬡</div>
+          <div class="badge-text">
+            <strong>Zero Trust</strong>
+            <span>Conditional Access, MFA enforcement, baseline implementation</span>
+          </div>
+        </div>
+        <div class="badge">
+          <div class="badge-icon">⬡</div>
+          <div class="badge-text">
+            <strong>Cloud Migration</strong>
+            <span>Azure & M365 migration planning and execution</span>
+          </div>
+        </div>
+        <div class="badge">
+          <div class="badge-icon">⬡</div>
+          <div class="badge-text">
+            <strong>PKI & PAM</strong>
+            <span>Certificate infrastructure and privileged access modernization</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section id="services">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="section-tag">What We Do</div>
+      <h2 class="section-title">Services</h2>
+    </div>
+    <div class="services-grid">
+      <div class="service-card reveal">
+        <div class="service-num">01 — IDENTITY</div>
+        <div class="service-title">Enterprise Identity Architecture & Design</div>
+        <div class="service-desc">End-to-end identity architecture for complex enterprise environments. We design systems that scale, survive audits, and align with Microsoft best practices and Zero Trust principles.</div>
+      </div>
+      <div class="service-card reveal">
+        <div class="service-num">02 — HYBRID</div>
+        <div class="service-title">Hybrid Identity (AD DS + Entra ID)</div>
+        <div class="service-desc">Seamless integration of on-premises Active Directory with Microsoft Entra ID. Entra Connect design, configuration, troubleshooting, and optimization for hybrid environments.</div>
+      </div>
+      <div class="service-card reveal">
+        <div class="service-num">03 — MIGRATION</div>
+        <div class="service-title">Forest-to-Forest & Multi-Forest Migrations</div>
+        <div class="service-desc">Complex Active Directory migrations driven by M&A, restructuring, or consolidation. We handle trust relationships, SID history, object migration, and cutover planning.</div>
+      </div>
+      <div class="service-card reveal">
+        <div class="service-num">04 — SECURITY</div>
+        <div class="service-title">Conditional Access & Zero Trust</div>
+        <div class="service-desc">Conditional Access policy design, MFA rollout and enforcement, and Zero Trust baseline implementation. Security that doesn't get in the way of the business.</div>
+      </div>
+      <div class="service-card reveal">
+        <div class="service-num">05 — GOVERNANCE</div>
+        <div class="service-title">Identity Governance & Lifecycle Automation</div>
+        <div class="service-desc">HR-driven provisioning and deprovisioning workflows, joiner-mover-leaver automation, and identity lifecycle management aligned to organizational process.</div>
+      </div>
+      <div class="service-card reveal">
+        <div class="service-num">06 — MESSAGING</div>
+        <div class="service-title">Exchange Online Migrations</div>
+        <div class="service-desc">Cutover, staged, hybrid, and cross-tenant Exchange migrations. Hybrid configuration, remediation, and post-migration support to ensure clean, reliable transitions.</div>
+      </div>
+      <div class="service-card reveal">
+        <div class="service-num">07 — CLOUD</div>
+        <div class="service-title">Azure & M365 Migration Planning</div>
+        <div class="service-desc">Cloud migration planning that aligns identity, messaging, and security foundations before you move. Structured, risk-aware, and built around your operational reality.</div>
+      </div>
+      <div class="service-card reveal">
+        <div class="service-num">08 — INFRASTRUCTURE</div>
+        <div class="service-title">PKI Design & Implementation</div>
+        <div class="service-desc">Certificate authority design, PKI hierarchy planning, and implementation for enterprise environments requiring strong authentication and code-signing infrastructure.</div>
+      </div>
+      <div class="service-card reveal">
+        <div class="service-num">09 — ACCESS</div>
+        <div class="service-title">PAM & VPN Modernization</div>
+        <div class="service-desc">Identity components of privileged access management and VPN modernization initiatives. We integrate identity controls with broader security architecture programs.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EXPERTISE -->
+<section id="expertise">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="section-tag">Technical Stack</div>
+      <h2 class="section-title">Core Expertise</h2>
+    </div>
+    <div class="expertise-layout">
+      <div class="tech-list reveal">
+        <div class="tech-item"><span>Microsoft Entra ID</span><span class="dot"></span></div>
+        <div class="tech-item"><span>Active Directory DS</span><span class="dot"></span></div>
+        <div class="tech-item"><span>Entra Connect</span><span class="dot"></span></div>
+        <div class="tech-item"><span>Exchange Online</span><span class="dot"></span></div>
+        <div class="tech-item"><span>Conditional Access</span><span class="dot"></span></div>
+        <div class="tech-item"><span>Azure AD B2B / B2C</span><span class="dot"></span></div>
+        <div class="tech-item"><span>Microsoft 365</span><span class="dot"></span></div>
+        <div class="tech-item"><span>ADFS</span><span class="dot"></span></div>
+        <div class="tech-item"><span>PKI / Certificate Services</span><span class="dot"></span></div>
+        <div class="tech-item"><span>Group Policy (GPO)</span><span class="dot"></span></div>
+        <div class="tech-item"><span>PowerShell Automation</span><span class="dot"></span></div>
+        <div class="tech-item"><span>Azure Portal & ARM</span><span class="dot"></span></div>
+      </div>
+      <div class="expertise-blocks reveal">
+        <div class="expertise-block">
+          <h4>Identity Architecture</h4>
+          <p>Forest design, OU structure, trust relationships, schema planning, and identity topology for complex enterprise and government environments.</p>
+        </div>
+        <div class="expertise-block">
+          <h4>Hybrid Identity</h4>
+          <p>Entra Connect sync rules, password hash sync, pass-through authentication, and seamless SSO configuration and remediation.</p>
+        </div>
+        <div class="expertise-block">
+          <h4>Messaging Modernization</h4>
+          <p>Exchange 2007 through 2019 to Exchange Online. Hybrid configuration wizard, mail flow, certificates, and cross-tenant migration tooling.</p>
+        </div>
+        <div class="expertise-block">
+          <h4>Zero Trust Alignment</h4>
+          <p>Conditional Access policy design, named locations, compliance policies, MFA registration campaigns, and authentication strengths.</p>
+        </div>
+        <div class="expertise-block">
+          <h4>Lifecycle Automation</h4>
+          <p>HR system integrations, joiner-mover-leaver workflows, group-based licensing, dynamic groups, and provisioning rule design.</p>
+        </div>
+        <div class="expertise-block">
+          <h4>Migration Engineering</h4>
+          <p>ADMT, Quest Migration Manager, binary SID mapping, cross-forest Kerberos, and post-migration cleanup and validation.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INDUSTRIES -->
+<section id="industries">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="section-tag">Who We Serve</div>
+      <h2 class="section-title">Industries</h2>
+      <p class="section-body" style="margin-top:1rem;">We bring sector-specific experience to identity and messaging challenges — from government security mandates to energy sector M&A consolidations.</p>
+    </div>
+    <div class="industries-grid reveal">
+      <div class="industry-item">
+        <span class="industry-icon">🏛️</span>
+        <div class="industry-name">Public Sector</div>
+      </div>
+      <div class="industry-item">
+        <span class="industry-icon">⚡</span>
+        <div class="industry-name">Energy & Resources</div>
+      </div>
+      <div class="industry-item">
+        <span class="industry-icon">💼</span>
+        <div class="industry-name">Professional Services</div>
+      </div>
+      <div class="industry-item">
+        <span class="industry-icon">☁️</span>
+        <div class="industry-name">SaaS & Technology</div>
+      </div>
+      <div class="industry-item">
+        <span class="industry-icon">🏢</span>
+        <div class="industry-name">SMB & Mid-Market</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="section-inner">
+    <div class="contact-grid">
+      <div class="reveal">
+        <div class="section-tag">Get In Touch</div>
+        <h2 class="section-title">Let's Talk<br>Identity.</h2>
+        <p class="section-body" style="margin-top:1.5rem;">
+          Whether you're planning a migration, dealing with a hybrid identity problem, or need architecture support for a complex M365 deployment — reach out and let's scope it together.
+        </p>
+        <hr class="h-rule">
+        <div class="contact-info">
+          <div class="contact-detail">
+            <div class="contact-detail-label">Company</div>
+            <div class="contact-detail-value">Genlink Consulting</div>
+            <div class="contact-detail-sub">Identity & Messaging Architecture</div>
+          </div>
+          <div class="contact-detail">
+            <div class="contact-detail-label">Response Time</div>
+            <div class="contact-detail-value">Within One Business Day</div>
+            <div class="contact-detail-sub">Use the form to get in touch</div>
+          </div>
+          <div class="contact-detail">
+            <div class="contact-detail-label">Website</div>
+            <div class="contact-detail-value">genlink.ca</div>
+            <div class="contact-detail-sub">Remote engagements — Canada & United States</div>
+          </div>
+          <div class="contact-detail">
+            <div class="contact-detail-label">Partner Status</div>
+            <div class="contact-detail-value">Microsoft Partner</div>
+            <div class="contact-detail-sub">Listed in Microsoft Partner Center — Services / ISV</div>
+          </div>
+        </div>
+      </div>
+      <div class="reveal">
+        <form class="contact-form" action="https://formspree.io/f/YOUR_FORM_ID" method="POST" onsubmit="handleSubmit(event)">
+          <input type="hidden" name="_replyto" value="info@genlink.ca">
+          <input type="hidden" name="_subject" value="New Genlink Consulting Inquiry">
+          <div class="form-row">
+            <div class="form-group">
+              <label>First Name</label>
+              <input type="text" placeholder="Jane">
+            </div>
+            <div class="form-group">
+              <label>Last Name</label>
+              <input type="text" placeholder="Smith">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Work Email</label>
+            <input type="email" placeholder="jane@company.com">
+          </div>
+          <div class="form-group">
+            <label>Organization</label>
+            <input type="text" placeholder="Company name">
+          </div>
+          <div class="form-group">
+            <label>Area of Interest</label>
+            <select>
+              <option value="">Select a service area...</option>
+              <option>Identity Architecture & Design</option>
+              <option>Hybrid Identity (AD DS + Entra ID)</option>
+              <option>Active Directory Migration / Consolidation</option>
+              <option>Conditional Access & Zero Trust</option>
+              <option>Identity Governance & Lifecycle</option>
+              <option>Exchange Online Migration</option>
+              <option>Azure & M365 Migration Planning</option>
+              <option>PKI Design & Implementation</option>
+              <option>Other / Not Sure</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Tell us about your situation</label>
+            <textarea placeholder="Brief description of your environment, challenge, or project scope..."></textarea>
+          </div>
+          <button type="submit" class="btn-primary" style="align-self:flex-start;">Send Message →</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">GENLINK CONSULTING</div>
+  <div class="footer-copy">© 2025 Genlink Consulting. All rights reserved. &nbsp;|&nbsp; genlink.ca</div>
+  <ul class="footer-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#services">Services</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</footer>
+
+<script>
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+  reveals.forEach(el => observer.observe(el));
+
+  // Stagger child reveals
+  document.querySelectorAll('.services-grid, .about-badges').forEach(grid => {
+    grid.querySelectorAll('.reveal').forEach((el, i) => {
+      el.style.transitionDelay = `${i * 0.07}s`;
+    });
+  });
+
+  // Form submit
+  function handleSubmit(e) {
+    e.preventDefault();
+    const btn = e.target.querySelector('button');
+    btn.textContent = 'Message Sent ✓';
+    btn.style.background = 'var(--green)';
+    setTimeout(() => {
+      btn.textContent = 'Send Message →';
+      btn.style.background = 'var(--accent)';
+    }, 3000);
+  }
+</script>
+</body>
+</html>
